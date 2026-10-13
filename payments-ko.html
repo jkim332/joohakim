@@ -31,7 +31,7 @@ body {
 a { color: inherit; text-decoration: none; }
 a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
 .wrap { max-width: 1440px; margin: 0 auto; padding: 24px 24px 96px; }
-header { position: relative; padding: 56px 0 28px; margin-bottom: 56px; border-bottom: 1px solid var(--line); text-align: center; }
+header { padding: 24px 0 28px; margin-bottom: 56px; border-bottom: 1px solid var(--line); text-align: center; }
 .eyebrow, .sec-title {
   color: var(--head);
   font-size: .75rem;
@@ -45,11 +45,14 @@ h1 { margin: 0; color: var(--head); font-size: 2.5rem; font-weight: 700; line-he
 .project-tags { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
 .project-tags li { padding: 4px 12px; border-radius: 999px; background: var(--card); color: var(--head); font-size: .75rem; font-weight: 500; line-height: 1.5; }
 .project-tags li + li { margin-top: 0; }
-.back-link { display: inline-block; margin-top: 24px; color: #269db3; font-size: .875rem; font-weight: 600; }
-.back-link:hover { color: var(--accent); }
+.page-links { position: fixed; z-index: 40; top: 50%; left: 16px; display: flex; flex-direction: column; align-items: stretch; gap: 16px; transform: translateY(-50%); }
+.page-links a { color: #269db3; font-size: .875rem; font-weight: 600; }
+.page-links a:hover { color: var(--accent); }
+.page-links .language-link { display: block; padding: 8px 14px; border: 1px solid #9eeaf2; border-radius: 999px; background: #e8fafd; box-shadow: 0 3px 10px rgba(45, 192, 211, .16); color: #269db3; text-align: center; font-size: 1rem; font-weight: 700; transition: background .2s ease, box-shadow .2s ease, transform .2s ease; }
+.page-links .language-link:hover { transform: translateY(-2px); background: #d7f5f8; box-shadow: 0 5px 14px rgba(45, 192, 211, .24); color: #16849b; }
 .project-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 24px; }
-.language-link { position: absolute; top: -16px; right: -48px; display: inline-block; padding: 10px 20px; border: 1px solid #9eeaf2; border-radius: 999px; background: linear-gradient(135deg, #c9f7fb, #8de1eb); box-shadow: 0 4px 12px rgba(45, 192, 211, .22); color: #124b68; font-size: 1rem; font-weight: 700; transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
-.language-link:hover { transform: translateY(-2px); background: linear-gradient(135deg, #b6f1f7, #70d7e5); box-shadow: 0 7px 16px rgba(45, 192, 211, .3); color: #103d55; }
+.project-links a { display: inline-block; margin-top: 24px; color: #269db3; font-size: .875rem; font-weight: 600; }
+.project-links a:hover { color: var(--accent); }
 main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; }
 .sec-title { margin: 0 0 16px; font-size: 1rem; }
 .copy { max-width: 100%; }
@@ -99,6 +102,13 @@ footer a:hover { color: var(--accent); }
   h1 { font-size: 3.5rem; }
   .diagram-card, .detail-card { padding: 32px; }
 }
+@media (min-width: 1024px) {
+  .wrap { margin: 0 24px 0 max(228px, calc(50vw - 540px)); }
+}
+@media (max-width: 1023px) {
+  .page-links { top: auto; right: 16px; bottom: 16px; left: 16px; flex-direction: row; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 20px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); box-shadow: 0 4px 16px rgba(0, 0, 0, .12); transform: none; }
+  .page-links .language-link { width: auto; }
+}
 @media (max-width: 520px) {
   .rules { font-size: .8rem; }
   .rules th, .rules td { padding: 10px 6px; }
@@ -107,9 +117,12 @@ footer a:hover { color: var(--accent); }
 </style>
 </head>
 <body>
+<nav class="page-links" aria-label="페이지 링크">
+  <a class="language-link" href="payments.html" lang="en">English ver.</a>
+  <a href="index.html">← 메인으로 돌아가기</a>
+</nav>
 <div class="wrap">
   <header>
-    <a class="language-link" href="payments.html" lang="en">English</a>
     <p class="eyebrow"></p>
     <h1>Real-Time Payment Analytics and Fraud Detection Pipeline</h1>
     <p class="subtitle">결제 이벤트를 생성하고 사기 탐지 규칙을 적용해 실시간 대시보드에서 거래 현황을 확인하는 스트리밍 데이터 데모입니다.</p>
@@ -120,8 +133,7 @@ footer a:hover { color: var(--accent); }
       <li>Grafana</li>
     </ul>
     <div class="project-links">
-      <a class="back-link" href="index.html">← 돌아가기</a>
-      <a class="back-link" href="https://github.com/jkim332/payment-fraud-pipeline" target="_blank" rel="noreferrer noopener">GitHub에서 프로젝트 보기 ↗</a>
+      <a href="https://github.com/jkim332/payment-fraud-pipeline" target="_blank" rel="noreferrer noopener">GitHub에서 프로젝트 보기 ↗</a>
     </div>
   </header>
   <main>
