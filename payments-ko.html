@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>결제 사기 탐지 파이프라인 – Jooha Kim</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+:root {
+  --bg: #ffffff;
+  --head: #1e27a5;
+  --text: #111111;
+  --muted: #525252;
+  --accent: #2dc0d3;
+  --card: rgba(0, 65, 194, .05);
+  --line: #e5e7eb;
+  color-scheme: light;
+  box-sizing: border-box;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 400 17px/1.6 Pretendard, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+.wrap { max-width: 1440px; margin: 0 auto; padding: 24px 24px 96px; }
+header { position: relative; padding: 56px 0 28px; margin-bottom: 56px; border-bottom: 1px solid var(--line); text-align: center; }
+.eyebrow, .sec-title {
+  color: var(--head);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.eyebrow { margin: 0 0 12px; }
+h1 { margin: 0; color: var(--head); font-size: 2.5rem; font-weight: 700; line-height: 1.1; letter-spacing: -.02em; }
+.subtitle { margin: 12px 0 0; color: var(--muted); font-weight: 500; }
+.project-tags { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
+.project-tags li { padding: 4px 12px; border-radius: 999px; background: var(--card); color: var(--head); font-size: .75rem; font-weight: 500; line-height: 1.5; }
+.project-tags li + li { margin-top: 0; }
+.back-link { display: inline-block; margin-top: 24px; color: var(--head); font-size: .875rem; font-weight: 600; }
+.back-link:hover { color: var(--accent); }
+.project-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 24px; }
+.language-link { position: absolute; top: -16px; right: -48px; display: inline-block; padding: 10px 20px; border: 1px solid #9eeaf2; border-radius: 999px; background: linear-gradient(135deg, #c9f7fb, #8de1eb); box-shadow: 0 4px 12px rgba(45, 192, 211, .22); color: #124b68; font-size: 1rem; font-weight: 700; transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
+.language-link:hover { transform: translateY(-2px); background: linear-gradient(135deg, #b6f1f7, #70d7e5); box-shadow: 0 7px 16px rgba(45, 192, 211, .3); color: #103d55; }
+main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; }
+.sec-title { margin: 0 0 16px; font-size: 1rem; }
+.copy { max-width: 100%; }
+.copy p { margin: 0 0 16px; }
+.copy p:last-child { margin-bottom: 0; }
+.korean-copy { font-weight: 400; }
+.diagram-card, .detail-card { padding: 24px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+.diagram-card { margin: 0; }
+.diagram-scroll { overflow-x: auto; }
+.diagram { display: block; width: 100%; min-width: 760px; height: auto; }
+.diagram-node { fill: #fff; stroke: var(--head); stroke-width: 2; }
+.diagram-title { fill: var(--head); font: 600 16px Pretendard, system-ui, sans-serif; }
+.diagram-copy { fill: var(--muted); font: 500 13px Pretendard, system-ui, sans-serif; }
+.diagram-arrow { fill: none; stroke: var(--accent); stroke-width: 2.5; }
+.diagram-label { fill: var(--muted); font: 500 12px Pretendard, system-ui, sans-serif; }
+.diagram-caption { margin: 12px 0 0; color: var(--muted); font-size: .8rem; font-weight: 500; }
+.media-image { display: block; width: min(100%, 900px); max-height: 520px; object-fit: contain; margin: 16px auto 0; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.image-zoom { display: block; max-width: 100%; margin: 0 auto; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.image-zoom:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 10px; }
+.image-lightbox { position: fixed; max-width: 96vw; max-height: 96vh; padding: 48px 16px 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 0 16px 48px rgba(0, 0, 0, .28); }
+.image-lightbox::backdrop { background: rgba(10, 15, 40, .78); }
+.image-lightbox img { display: block; max-width: calc(96vw - 32px); max-height: calc(96vh - 80px); object-fit: contain; }
+.image-lightbox-close { position: absolute; top: 10px; right: 12px; padding: 6px 12px; border: 0; border-radius: 999px; background: var(--head); color: #fff; font: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; }
+.image-lightbox-close:hover { background: var(--accent); color: var(--text); }
+.detail-card h3 { margin: 0 0 8px; color: var(--head); font-size: 1rem; }
+.detail-card p { margin: 0; }
+.solution-stages { display: grid; gap: 16px; }
+.solution-stage { padding: 0; }
+.solution-stage h4 { margin-bottom: 2px; }
+.solution-stage p { margin: 0; }
+.solution-stage .translation { margin-top: 6px; color: var(--muted); }
+.rules-card { margin-top: 16px; }
+.rules { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.rules th, .rules td { padding: 12px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.rules th { color: var(--head); font-size: .8rem; }
+.rules tr:last-child td { border-bottom: 0; }
+.callout { padding: 16px 20px; border-left: 3px solid var(--accent); background: var(--card); color: var(--muted); }
+.callout strong { color: var(--text); }
+ul { margin: 0; padding-left: 1.25rem; }
+li + li { margin-top: 8px; }
+footer { margin-top: 72px; color: var(--muted); font-size: .875rem; }
+footer a { color: var(--text); }
+footer a:hover { color: var(--accent); }
+@media (min-width: 768px) {
+  .wrap { padding: 24px 48px 96px; }
+  h1 { font-size: 3.5rem; }
+  .diagram-card, .detail-card { padding: 32px; }
+}
+@media (max-width: 520px) {
+  .rules { font-size: .8rem; }
+  .rules th, .rules td { padding: 10px 6px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="language-link" href="payments.html" lang="en">English</a>
+    <p class="eyebrow"></p>
+    <h1>Real-Time Payment Analytics and Fraud Detection Pipeline</h1>
+    <p class="subtitle">결제 이벤트를 생성하고 사기 탐지 규칙을 적용해 실시간 대시보드에서 거래 현황을 확인하는 스트리밍 데이터 데모입니다.</p>
+    <ul class="project-tags" aria-label="사용 기술">
+      <li>Python</li>
+      <li>Kafka</li>
+      <li>ClickHouse</li>
+      <li>Grafana</li>
+    </ul>
+    <div class="project-links">
+      <a class="back-link" href="index.html">← 돌아가기</a>
+      <a class="back-link" href="https://github.com/jkim332/payment-fraud-pipeline" target="_blank" rel="noreferrer noopener">GitHub에서 프로젝트 보기 ↗</a>
+    </div>
+  </header>
+  <main>
+    <section class="copy" aria-labelledby="importance-title">
+      <h2 class="sec-title" id="importance-title">1. 왜 중요한가?</h2>
+      <p>디지털 결제는 빠르게 움직이면서 대량의 거래가 발생되기 때문에 수동으로 사기 거래를 탐지하는 데 한계가 있습니다. 의심스러운 거래는 금전적 손실과 조사 비용을 초래할 수 있으며, 정상적인 고객의 결제가 차단되는 문제로 이어질 수도 있습니다.</p>
+    </section>
+    <section aria-labelledby="overview-title">
+      <h2 class="sec-title" id="overview-title">2. 설계</h2>
+      <div class="copy"></div>
+      <figure class="diagram-card">
+        <div class="diagram-scroll">
+          <svg class="diagram" viewBox="0 0 980 220" role="img" aria-labelledby="architecture-title architecture-description">
+            <title id="architecture-title">결제 사기 탐지 파이프라인 아키텍처</title>
+            <defs>
+              <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                <path d="M0 0 L8 4 L0 8 Z" fill="#2dc0d3"/>
+              </marker>
+            </defs>
+            <rect class="diagram-node" x="10" y="62" width="160" height="100" rx="10"/>
+            <text class="diagram-title" x="90" y="99" text-anchor="middle">이벤트 생성기</text>
+            <text class="diagram-copy" x="90" y="123" text-anchor="middle">초당 100 이벤트</text>
+            <text class="diagram-copy" x="90" y="143" text-anchor="middle">Python</text>
+            <path class="diagram-arrow" d="M174 112 H202" marker-end="url(#arrow)"/>
+            <text class="diagram-label" x="188" y="99" text-anchor="middle">JSON</text>
+            <rect class="diagram-node" x="210" y="62" width="160" height="100" rx="10"/>
+            <text class="diagram-title" x="290" y="99" text-anchor="middle">Kafka</text>
+            <text class="diagram-copy" x="290" y="123" text-anchor="middle">payments · 3 파티션</text>
+            <text class="diagram-copy" x="290" y="143" text-anchor="middle">키: user_id</text>
+            <path class="diagram-arrow" d="M374 112 H402" marker-end="url(#arrow)"/>
+            <rect class="diagram-node" x="410" y="62" width="160" height="100" rx="10"/>
+            <text class="diagram-title" x="490" y="99" text-anchor="middle">배치 컨슈머</text>
+            <text class="diagram-copy" x="490" y="123" text-anchor="middle">Python · 검증</text>
+            <text class="diagram-copy" x="490" y="143" text-anchor="middle">점수 · 수동 커밋</text>
+            <path class="diagram-arrow" d="M574 112 H602" marker-end="url(#arrow)"/>
+            <rect class="diagram-node" x="610" y="62" width="160" height="100" rx="10"/>
+            <text class="diagram-title" x="690" y="99" text-anchor="middle">ClickHouse</text>
+            <text class="diagram-copy" x="690" y="123" text-anchor="middle">payments 테이블</text>
+            <text class="diagram-copy" x="690" y="143" text-anchor="middle">ReplacingMergeTree</text>
+            <path class="diagram-arrow" d="M774 112 H802" marker-end="url(#arrow)"/>
+            <rect class="diagram-node" x="810" y="62" width="160" height="100" rx="10"/>
+            <text class="diagram-title" x="890" y="99" text-anchor="middle">Grafana</text>
+            <text class="diagram-copy" x="890" y="123" text-anchor="middle">대시보드</text>
+          </svg>
+        </div>
+        <figcaption class="diagram-caption">가상 이벤트 생성기가 초당 100건의 JSON 결제 이벤트를 생성해 user_id를 키로 사용하여 3개 파티션의 Kafka payments 토픽으로 전송합니다. Python 배치 컨슈머는 이벤트를 검증하고 점수를 산출한 뒤 ClickHouse에 저장하며, Grafana에서 데이터를 시각화합니다.</figcaption>
+      </figure>
+    </section>
+    <section aria-labelledby="solution-title">
+      <h2 class="sec-title" id="solution-title">3. 해결책</h2>
+      <div class="solution-stages">
+        <article class="solution-stage">
+          <h4>1단계 — 이벤트 생성 및 Kafka를 통한 스트리밍</h4>
+          <p>Python 프로듀서는 초당 100건의 JSON 결제 이벤트를 생성하며, 그중 사기 탐지 규칙이 작동하도록 설계된 시나리오도 포함합니다. Kafka는 이벤트 생성과 처리를 분리하는 버퍼 역할이므로, 컨슈머가 배치 단위로 이벤트를 처리할 수 있게끔 합니다. <code>payments</code> 토픽은 데모에서 3개 파티션으로 설정했습니다. <code>user_id</code>를 키로 사용해 한 사용자의 이벤트를 같은 파티션으로 보내서 활동 패턴을 빠르게 감지합니다.</p>
+        </article>
+        <article class="solution-stage">
+          <h4>2단계 — 이벤트 검증 및 리스크 점수 계산</h4>
+          <p>Python 배치 컨슈머는 이벤트를 검증하고 사용자별 최근 활동을 감시하며, 사기 탐지 규칙을 적용합니다 (아래 규칙 참조). 작동한 규칙의 가중치를 합산해 최대 100점으로 제한합니다. 규칙이 한개 이상 일치하면 의심스러운 거래로 마킹하고 사유를 함께 기록해 점수를 쉽게 확인할 수 있습니다. 컨슈머는 ClickHouse 배치 저장이 성공한 뒤에만 Kafka 오프셋을 수동으로 커밋하며, 저장에 실패하면 탐지기 상태를 복원합니다.</p>
+          <div class="detail-card rules-card">
+            <h3>기본 사기 탐지 규칙</h3>
+            <div class="diagram-scroll">
+              <table class="rules">
+                <thead><tr><th scope="col">규칙</th><th scope="col">조건</th><th scope="col">가중치</th></tr></thead>
+                <tbody>
+                  <tr><td>고액 결제</td><td>결제 금액이 2,500 이상</td><td>45</td></tr>
+                  <tr><td>짧은 시간 내 반복 거래</td><td>60초 내 동일 사용자의 거래 4건</td><td>30</td></tr>
+                  <tr><td>반복 결제 거절</td><td>10분 내 동일 사용자의 결제 거절 4건</td><td>35</td></tr>
+                  <tr><td>국가 변경</td><td>15분 내 동일 사용자의 결제 국가 변경</td><td>40</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+        <article class="solution-stage">
+          <h4>3단계 — ClickHouse에 배치로 저장</h4>
+          <p>ClickHouse는 컬럼 지향 분석 데이터베이스로, 많은 거래를 집계하는 대시보드 쿼리에 적합해 선택했습니다. 컨슈머는 한 배치에 최대 500건을 저장하거나 최대 1,000ms 동안 폴링한 뒤 전송합니다. 배치 전송마다 대기 시간을 설정하여 벌크 write의 효율을 높이기 위해 설정을 맞췄습니다. 테이블은 <code>ReplacingMergeTree(ingested_at)</code>를 사용해 같은 거래의 최신 버전을 남길 수 있도록 했습니다. <code>event_time</code> 기준 월별 파티셔닝은 기간 조회 시 불필요한 월을 건너뛰는 데 도움이 되고, <code>(event_date, transaction_id)</code> 정렬 키는 날짜별 거래 조회를 지원합니다.</p>
+        </article>
+        <article class="solution-stage">
+          <h4>4단계 — Grafana에서 결과 확인</h4>
+          <button class="image-zoom" type="button" aria-label="Grafana 대시보드 이미지 크게 보기">
+            <img class="media-image" src="media/grafana_project1.png" alt="">
+          </button>
+          <p>Grafana는 ClickHouse 데이터를 사용해 <u>거래량과 결제 금액, 승인율과 의심 거래 비율, 탐지 사유, 가맹점별 성과, 위험도가 높은 사용자, 의심 거래 상세 정보</u>를 보여줍니다.</p>
+        </article>
+      </div>
+    </section>
+    <section class="copy" aria-labelledby="results-title">
+      <h2 class="sec-title" id="results-title">결과</h2>
+      <p>결과는 이벤트 생성, Kafka 스트리밍, 분석 저장소, 및 대시보드를 연결하는 작동하는 로컬 실행 가능한 데모 파이프라인입니다. 간단하게 설계되었지만, 실시간 결제 사기 탐지 시스템의 엔드 투 엔드 흐름을 보여주기에 충분히 현실적입니다.</p>
+    </section>
+    <section class="copy" aria-labelledby="tradeoffs-title">
+      <h2 class="sec-title" id="tradeoffs-title">고려 사항 및 대안</h2>
+      <ul>
+        <li><strong>상태 복구 -</strong> 슈머 재시작이나 리밸런싱 이후에도 상태를 복구하고 일관된 위험 점수를 산출하는 것은 프로덕션 환경에서 중요한 고려 사항입니다. 상태 저장소를 사용하거나, 상태 관리 및 체크포인팅 기능을 제공하는 Kafka Streams 또는 Flink를 도입하면 보다 안정적인 기반을 마련할 수 있습니다.</li>
+        <li><strong>워크로드 규모 -</strong> Kafka, ClickHouse, Grafana를 직접 운영하면 배포 및 모니터링에 추가적인 운영 부담이 발생합니다. 데이터 처리량이 적은 환경에서는 관리형 메시지 큐와 일반적인 데이터베이스를 조합하는 편이 더 간단할 수 있습니다. 반면 대규모 환경에서는 관리형 스트리밍 플랫폼이나 Flink 기반 파이프라인을 통해 더욱 체계적인 운영 및 모니터링 기능을 확보할 수 있습니다.</li>
+        <li><strong>배치 -</strong> 배치 크기를 늘리면 데이터베이스 쓰기 효율을 높일 수 있지만, 데이터가 조회 가능해지기까지 시간이 더 걸릴 수 있습니다. 프로덕션 환경에서는 실제 처리량과 엔드투엔드 지연 시간을 측정해 배치 설정을 조정하고, 재시도, 중복 제거, 알림, 데이터 보존 정책을 명확하게 정의해야 합니다.</li>
+      </ul>
+    </section>
+  </main>
+  <footer></footer>
+</div>
+<dialog class="image-lightbox" aria-label="확대된 Grafana 대시보드">
+  <button class="image-lightbox-close" type="button">닫기</button>
+  <img src="media/grafana_project1.png" alt="결제 사기 탐지 파이프라인의 확대된 Grafana 대시보드">
+</dialog>
+<script>
+const imageLightbox = document.querySelector('.image-lightbox');
+document.querySelector('.image-zoom').addEventListener('click', () => imageLightbox.showModal());
+imageLightbox.querySelector('.image-lightbox-close').addEventListener('click', () => imageLightbox.close());
+imageLightbox.addEventListener('click', event => {
+  if (event.target === imageLightbox) imageLightbox.close();
+});
+</script>
+</body>
+</html>
