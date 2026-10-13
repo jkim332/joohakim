@@ -45,7 +45,7 @@ h1 { margin: 0; color: var(--head); font-size: 2.5rem; font-weight: 700; line-he
 .project-tags { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
 .project-tags li { padding: 4px 12px; border-radius: 999px; background: var(--card); color: var(--head); font-size: .75rem; font-weight: 500; line-height: 1.5; }
 .project-tags li + li { margin-top: 0; }
-.back-link { display: inline-block; margin-top: 24px; color: var(--head); font-size: .875rem; font-weight: 600; }
+.back-link { display: inline-block; margin-top: 24px; color: #269db3; font-size: .875rem; font-weight: 600; }
 .back-link:hover { color: var(--accent); }
 .project-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 24px; }
 .language-link { position: absolute; top: -16px; right: -48px; display: inline-block; padding: 10px 20px; border: 1px solid #9eeaf2; border-radius: 999px; background: linear-gradient(135deg, #c9f7fb, #8de1eb); box-shadow: 0 4px 12px rgba(45, 192, 211, .22); color: #124b68; font-size: 1rem; font-weight: 700; transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
@@ -80,6 +80,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; }
 .solution-stage { padding: 0; }
 .solution-stage h4 { margin-bottom: 2px; }
 .solution-stage p { margin: 0; }
+.solution-stage > p, .solution-stage > .detail-card { margin-left: 1rem; }
 .solution-stage .translation { margin-top: 6px; color: var(--muted); }
 .rules-card { margin-top: 16px; }
 .rules { width: 100%; border-collapse: collapse; font-size: .9rem; }
@@ -127,8 +128,8 @@ footer a:hover { color: var(--accent); }
   <main>
     <section class="copy" aria-labelledby="importance-title">
       <h2 class="sec-title" id="importance-title">1. Why does it matter?</h2>
-      <p>Digital payments move quickly and generate large volumes of transactions, making manual fraud detection difficult to scale. Suspicious activity can lead to financial losses, costly investigations, and disrupted experiences for clients.
-        This project explores how stream processing can detect unusual payment activity in real-time and help analysts understand why transactions are flagged. Using fake payment data, it demonstrates an end-to-end fraud detection workflow.</p>
+      <p>Digital payments move quickly and generate large volumes of transactions, making manual fraud detection difficult to scale. Suspicious activity can lead to financial losses, costly investigations, and disrupted experiences for clients.</p>
+      <p>This project explores how stream processing can detect unusual payment activity in real-time and help analysts understand why transactions are flagged. Using fake payment data, it demonstrates an end-to-end fraud detection workflow.</p>
     </section>
     <section aria-labelledby="overview-title">
       <h2 class="sec-title" id="overview-title">2. THE PLAN</h2>
@@ -178,15 +179,15 @@ footer a:hover { color: var(--accent); }
       <div class="solution-stages">
         <article class="solution-stage">
           <h4>Stage 1 — Generate events and stream them through Kafka</h4>
-          <p>The Python producer creates 100 events/sec in JSON format, including occasional scenarios designed to trigger the fraud rules. 
-            Kafka provides a buffer between production and processing, so the consumer can work through events in batches. 
+          <p>The Python producer creates 100 events/sec in JSON format, including occasional scenarios designed to trigger the fraud rules.
+          <br>Kafka provides a buffer between production and processing, so the consumer can work through events in batches. 
             The <code>payments</code> topic is set up for 3 partitions. 
             Events use <code>user_id</code> as their key, where the user's activity is detected quickly by sending their events to the same partition.</p>
         </article>
         <article class="solution-stage">
           <h4>Stage 2 — Validate events and calculate risk</h4>
-          <p>The Python batch consumer validates incoming records, maintains recent activity per user, and applies fraud rules (see below for rules). 
-            Triggered rule weights are summed and capped at 100. Any matched rule marks the event as suspicious and records the reasons, making each score straightforward to inspect. 
+          <p>The Python batch consumer validates incoming records, maintains recent activity per user, and applies fraud rules (see below for rules). <br>
+            Triggered rule weights are summed and capped at 100. Any matched rule marks the event as suspicious and records the reasons, making each score straightforward to inspect. <br>
             The consumer manually commits Kafka offsets only after a database batch succeeds, and restores its detector state if that batch fails.</p>
           <div class="detail-card rules-card">
             <h3>Default fraud rules</h3>
@@ -205,8 +206,9 @@ footer a:hover { color: var(--accent); }
         </article>
         <article class="solution-stage">
           <h4>Stage 3 — Batch writes into ClickHouse</h4>
-          <p>ClickHouse was chosen as a column-oriented analytical database, for quick analytical queries. Consumer inserts up to 500 events per batch, or polls for up to 1,000 ms, balancing efficient bulk writes with bounded wait time before a batch is sent. 
-            The table uses <code>ReplacingMergeTree</code> so newer versions of a transaction can replace earlier ones during background merges. 
+          <p>ClickHouse was chosen as a column-oriented analytical database, for quick analytical queries. <br>
+            Consumer inserts up to 500 events per batch, or polls for up to 1,000 ms, balancing efficient bulk writes with bounded wait time before a batch is sent. 
+            The table uses <code>ReplacingMergeTree</code> so newer versions of a transaction can replace earlier ones during background merges. <br>
             Monthly partitions on <code>event_time</code> help time-range queries skip irrelevant months, while ordering by <code>(event_date, transaction_id)</code> supports date-scoped transaction lookups.</p>
         </article>
         <article class="solution-stage">
@@ -219,7 +221,7 @@ footer a:hover { color: var(--accent); }
       </div>
     </section>
     <section class="copy" aria-labelledby="results-title">
-      <h2 class="sec-title" id="results-title">The Result</h2>
+      <h2 class="sec-title" id="results-title">4. The Result</h2>
       <p>The result is a working, locally runnable reference pipeline that connects event generation, Kafka streaming, analytical storage, and dashboarding. 
         It was designed to be simple, but realistic enough to demonstrate the end-to-end flow of a real-time payment fraud detection system.</p>
     </section>

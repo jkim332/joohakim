@@ -45,7 +45,7 @@ h1 { margin: 0; color: var(--head); font-size: 2.5rem; font-weight: 700; line-he
 .project-tags { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
 .project-tags li { padding: 4px 12px; border-radius: 999px; background: var(--card); color: var(--head); font-size: .75rem; font-weight: 500; line-height: 1.5; }
 .project-tags li + li { margin-top: 0; }
-.back-link { display: inline-block; margin-top: 24px; color: var(--head); font-size: .875rem; font-weight: 600; }
+.back-link { display: inline-block; margin-top: 24px; color: #269db3; font-size: .875rem; font-weight: 600; }
 .back-link:hover { color: var(--accent); }
 .project-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 24px; }
 .language-link { position: absolute; top: -16px; right: -48px; display: inline-block; padding: 10px 20px; border: 1px solid #9eeaf2; border-radius: 999px; background: linear-gradient(135deg, #c9f7fb, #8de1eb); box-shadow: 0 4px 12px rgba(45, 192, 211, .22); color: #124b68; font-size: 1rem; font-weight: 700; transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
@@ -80,6 +80,7 @@ main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; }
 .solution-stage { padding: 0; }
 .solution-stage h4 { margin-bottom: 2px; }
 .solution-stage p { margin: 0; }
+.solution-stage > p, .solution-stage > .detail-card { margin-left: 1rem; }
 .solution-stage .translation { margin-top: 6px; color: var(--muted); }
 .rules-card { margin-top: 16px; }
 .rules { width: 100%; border-collapse: collapse; font-size: .9rem; }
@@ -174,11 +175,15 @@ footer a:hover { color: var(--accent); }
       <div class="solution-stages">
         <article class="solution-stage">
           <h4>1단계 — 이벤트 생성 및 Kafka를 통한 스트리밍</h4>
-          <p>Python 프로듀서는 초당 100건의 JSON 결제 이벤트를 생성하며, 그중 사기 탐지 규칙이 작동하도록 설계된 시나리오도 포함합니다. Kafka는 이벤트 생성과 처리를 분리하는 버퍼 역할이므로, 컨슈머가 배치 단위로 이벤트를 처리할 수 있게끔 합니다. <code>payments</code> 토픽은 데모에서 3개 파티션으로 설정했습니다. <code>user_id</code>를 키로 사용해 한 사용자의 이벤트를 같은 파티션으로 보내서 활동 패턴을 빠르게 감지합니다.</p>
+          <p>Python 프로듀서는 초당 100건의 JSON 결제 이벤트를 생성하며, 그중 사기 탐지 규칙이 작동하도록 설계된 시나리오도 포함합니다. <br>
+            Kafka는 이벤트 생성과 처리를 분리하는 버퍼 역할이므로, 컨슈머가 배치 단위로 이벤트를 처리할 수 있게끔 합니다. <br>
+            <code>payments</code> 토픽은 데모에서 3개 파티션으로 설정했습니다. <br><code>user_id</code>를 키로 사용해 한 사용자의 이벤트를 같은 파티션으로 보내서 활동 패턴을 빠르게 감지합니다.</p>
         </article>
         <article class="solution-stage">
           <h4>2단계 — 이벤트 검증 및 리스크 점수 계산</h4>
-          <p>Python 배치 컨슈머는 이벤트를 검증하고 사용자별 최근 활동을 감시하며, 사기 탐지 규칙을 적용합니다 (아래 규칙 참조). 작동한 규칙의 가중치를 합산해 최대 100점으로 제한합니다. 규칙이 한개 이상 일치하면 의심스러운 거래로 마킹하고 사유를 함께 기록해 점수를 쉽게 확인할 수 있습니다. 컨슈머는 ClickHouse 배치 저장이 성공한 뒤에만 Kafka 오프셋을 수동으로 커밋하며, 저장에 실패하면 탐지기 상태를 복원합니다.</p>
+          <p>Python 배치 컨슈머는 이벤트를 검증하고 사용자별 최근 활동을 감시하며, 사기 탐지 규칙을 적용합니다 (아래 규칙 참조). <br>
+            작동한 규칙의 가중치를 합산해 최대 100점으로 제한합니다. 규칙이 한개 이상 일치하면 의심스러운 거래로 마킹하고 사유를 함께 기록해 점수를 쉽게 확인할 수 있습니다. <br>
+            컨슈머는 ClickHouse 배치 저장이 성공한 뒤에만 Kafka 오프셋을 수동으로 커밋하며, 저장에 실패하면 탐지기 상태를 복원합니다.</p>
           <div class="detail-card rules-card">
             <h3>기본 사기 탐지 규칙</h3>
             <div class="diagram-scroll">
@@ -196,7 +201,9 @@ footer a:hover { color: var(--accent); }
         </article>
         <article class="solution-stage">
           <h4>3단계 — ClickHouse에 배치로 저장</h4>
-          <p>ClickHouse는 컬럼 지향 분석 데이터베이스로, 많은 거래를 집계하는 대시보드 쿼리에 적합해 선택했습니다. 컨슈머는 한 배치에 최대 500건을 저장하거나 최대 1,000ms 동안 폴링한 뒤 전송합니다. 배치 전송마다 대기 시간을 설정하여 벌크 write의 효율을 높이기 위해 설정을 맞췄습니다. 테이블은 <code>ReplacingMergeTree(ingested_at)</code>를 사용해 같은 거래의 최신 버전을 남길 수 있도록 했습니다. <code>event_time</code> 기준 월별 파티셔닝은 기간 조회 시 불필요한 월을 건너뛰는 데 도움이 되고, <code>(event_date, transaction_id)</code> 정렬 키는 날짜별 거래 조회를 지원합니다.</p>
+          <p>ClickHouse는 컬럼 지향 분석 데이터베이스로, 많은 거래를 집계하는 대시보드 쿼리에 적합해 선택했습니다. <br>
+            컨슈머는 한 배치에 최대 500건을 저장하거나 최대 1000ms 동안 폴링한 뒤 전송합니다. 배치 전송마다 대기 시간을 설정하여 벌크 write의 효율을 높이기 위해 설정을 맞췄습니다.<br>
+            테이블은 <code>ReplacingMergeTree(ingested_at)</code>를 사용해 같은 거래의 최신 버전을 남길 수 있도록 했습니다. <code>event_time</code> 기준 월별 파티셔닝은 기간 조회 시 불필요한 월을 건너뛰는 데 도움이 되고, <code>(event_date, transaction_id)</code> 정렬 키는 날짜별 거래 조회를 지원합니다.</p>
         </article>
         <article class="solution-stage">
           <h4>4단계 — Grafana에서 결과 확인</h4>
@@ -208,15 +215,15 @@ footer a:hover { color: var(--accent); }
       </div>
     </section>
     <section class="copy" aria-labelledby="results-title">
-      <h2 class="sec-title" id="results-title">결과</h2>
-      <p>결과는 이벤트 생성, Kafka 스트리밍, 분석 저장소, 및 대시보드를 연결하는 작동하는 로컬 실행 가능한 데모 파이프라인입니다. 간단하게 설계되었지만, 실시간 결제 사기 탐지 시스템의 엔드 투 엔드 흐름을 보여주기에 충분히 현실적입니다.</p>
+      <h2 class="sec-title" id="results-title">4. 결과</h2>
+      <p>결과는 이벤트 생성, Kafka 스트리밍, 분석 저장소, 및 대시보드를 연결 시켜서 작동 가능한 데모 파이프라인입니다. 간단하게 설계되었지만, 현실에서도 실시간 결제 사기 탐지 시스템의 엔드 투 엔드 흐름을 보여주기에 충분합니다.</p>
     </section>
     <section class="copy" aria-labelledby="tradeoffs-title">
       <h2 class="sec-title" id="tradeoffs-title">고려 사항 및 대안</h2>
       <ul>
-        <li><strong>상태 복구 -</strong> 슈머 재시작이나 리밸런싱 이후에도 상태를 복구하고 일관된 위험 점수를 산출하는 것은 프로덕션 환경에서 중요한 고려 사항입니다. 상태 저장소를 사용하거나, 상태 관리 및 체크포인팅 기능을 제공하는 Kafka Streams 또는 Flink를 도입하면 보다 안정적인 기반을 마련할 수 있습니다.</li>
-        <li><strong>워크로드 규모 -</strong> Kafka, ClickHouse, Grafana를 직접 운영하면 배포 및 모니터링에 추가적인 운영 부담이 발생합니다. 데이터 처리량이 적은 환경에서는 관리형 메시지 큐와 일반적인 데이터베이스를 조합하는 편이 더 간단할 수 있습니다. 반면 대규모 환경에서는 관리형 스트리밍 플랫폼이나 Flink 기반 파이프라인을 통해 더욱 체계적인 운영 및 모니터링 기능을 확보할 수 있습니다.</li>
-        <li><strong>배치 -</strong> 배치 크기를 늘리면 데이터베이스 쓰기 효율을 높일 수 있지만, 데이터가 조회 가능해지기까지 시간이 더 걸릴 수 있습니다. 프로덕션 환경에서는 실제 처리량과 엔드투엔드 지연 시간을 측정해 배치 설정을 조정하고, 재시도, 중복 제거, 알림, 데이터 보존 정책을 명확하게 정의해야 합니다.</li>
+        <li><strong>상태 복구 -</strong> 컨슈머 재부팅이나 리밸런싱 이후에도 상태를 복구하고 일관된 프로덕션 환경을 만들어내는걸 목표로 해서 파이프라인 상태를 따로 저장하거나, 체크포인팅 기능을 제공하는 Kafka Streams 또는 Flink를 도입하면 보다 안정적인 시스템을 마련할 수 있습니다.</li>
+        <li><strong>워크로드 규모 -</strong> Kafka, ClickHouse, Grafana를 직접 운영하면 배포 및 모니터링에 추가적인 운영 부담이 발생합니다. 데이터 규모가 적은 환경에서는 관리형 메시지 큐와 일반적인 데이터베이스를 조합하는 편이 더 간단할 수 있습니다. 반면 대규모 환경에서는 관리형 스트리밍 플랫폼이나 Flink 기반 파이프라인을 통해 더욱 체계적인 운영 및 모니터링 기능을 확보할 수 있습니다.</li>
+        <li><strong>배치 -</strong> 배치 크기를 늘리면 데이터베이스 저장 효율을 높일 수 있지만, 데이터가 조회 가능해지기까지 시간이 더 걸릴 수 있습니다. 프로덕션 환경에서는 실제 처리량과 엔드투엔드 지연 시간을 측정해 배치를 조정하고, 재시도, 중복 제거, 알림, 데이터 보존 정책을 설정 해야합니다..</li>
       </ul>
     </section>
   </main>
