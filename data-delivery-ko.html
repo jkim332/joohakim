@@ -50,6 +50,9 @@ h1 { margin: 0; color: var(--head); font-size: 2.5rem; font-weight: 700; line-he
 .page-links a:hover { color: var(--accent); }
 .page-links .language-link { display: block; padding: 8px 14px; border: 1px solid #9eeaf2; border-radius: 999px; background: #e8fafd; box-shadow: 0 3px 10px rgba(45, 192, 211, .16); color: #269db3; text-align: center; font-size: 1rem; font-weight: 700; transition: background .2s ease, box-shadow .2s ease, transform .2s ease; }
 .page-links .language-link:hover { transform: translateY(-2px); background: #d7f5f8; box-shadow: 0 5px 14px rgba(45, 192, 211, .24); color: #16849b; }
+.project-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 24px; }
+.project-links a { display: inline-block; margin-top: 24px; color: #269db3; font-size: .875rem; font-weight: 600; }
+.project-links a:hover { color: var(--accent); }
 main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; }
 .sec-title { margin: 0 0 16px; font-size: 1rem; }
 .copy { max-width: 100%; }
@@ -130,6 +133,9 @@ footer { margin-top: 72px; color: var(--muted); font-size: .875rem; }
       <li>Snowflake</li>
       <li>Kubernetes</li>
     </ul>
+    <div class="project-links">
+      <a href="https://github.com/jkim332/airflow-delivery-orchestration" target="_blank" rel="noreferrer noopener">GitHub에서 프로젝트 보기 ↗</a>
+    </div>
   </header>
   <main>
     <section class="copy" aria-labelledby="importance-title">
