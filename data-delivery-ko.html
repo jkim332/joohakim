@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>다중 소스 데이터 전달 파이프라인 – 김주하</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+:root {
+  --bg: #ffffff;
+  --head: #1e27a5;
+  --text: #111111;
+  --muted: #525252;
+  --accent: #2dc0d3;
+  --card: rgba(0, 65, 194, .05);
+  --line: #e5e7eb;
+  color-scheme: light;
+  box-sizing: border-box;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 400 17px/1.7 Pretendard, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+.wrap { max-width: 1200px; margin: 0 auto; padding: 24px 24px 96px; }
+header { padding: 24px 0 28px; margin-bottom: 56px; border-bottom: 1px solid var(--line); text-align: center; }
+.eyebrow, .sec-title {
+  color: var(--head);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.eyebrow { margin: 0 0 12px; }
+h1 { margin: 0; color: var(--head); font-size: 2.5rem; font-weight: 700; line-height: 1.1; letter-spacing: -.02em; }
+.subtitle { margin: 12px 0 0; color: var(--muted); font-weight: 500; }
+.project-tags { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
+.project-tags li { padding: 4px 12px; border-radius: 999px; background: var(--card); color: var(--head); font-size: .75rem; font-weight: 500; line-height: 1.5; }
+.project-tags li + li { margin-top: 0; }
+.page-links { position: fixed; z-index: 40; top: 50%; left: 16px; display: flex; flex-direction: column; align-items: stretch; gap: 16px; transform: translateY(-50%); }
+.page-links a { color: #269db3; font-size: .875rem; font-weight: 600; }
+.page-links a:hover { color: var(--accent); }
+.page-links .language-link { display: block; padding: 8px 14px; border: 1px solid #9eeaf2; border-radius: 999px; background: #e8fafd; box-shadow: 0 3px 10px rgba(45, 192, 211, .16); color: #269db3; text-align: center; font-size: 1rem; font-weight: 700; transition: background .2s ease, box-shadow .2s ease, transform .2s ease; }
+.page-links .language-link:hover { transform: translateY(-2px); background: #d7f5f8; box-shadow: 0 5px 14px rgba(45, 192, 211, .24); color: #16849b; }
+main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; }
+.sec-title { margin: 0 0 16px; font-size: 1rem; }
+.copy { max-width: 100%; }
+.copy p { margin: 0 0 24px; }
+.copy p:last-child { margin-bottom: 0; }
+.diagram-card, .detail-card { padding: 24px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+.diagram-card { min-width: 0; margin: 0; }
+.diagram { display: block; width: 100%; height: auto; }
+.diagram-wide { max-width: 1100px; margin: 0 auto; }
+.diagram-mobile { display: none; }
+.diagram-node { fill: #fff; stroke: var(--head); stroke-width: 2; }
+.diagram-title { fill: var(--head); font: 600 16px Pretendard, system-ui, sans-serif; }
+.diagram-copy { fill: var(--muted); font: 500 13px Pretendard, system-ui, sans-serif; }
+.diagram-wide .diagram-title { font-size: 20px; }
+.diagram-wide .diagram-copy { font-size: 15px; }
+.diagram-wide .diagram-label { font-size: 14px; }
+.diagram-arrow { fill: none; stroke: var(--accent); stroke-width: 2.5; }
+.diagram-label { fill: var(--muted); font: 500 12px Pretendard, system-ui, sans-serif; }
+.diagram-caption { margin: 12px 0 0; color: var(--muted); font-size: .8rem; font-weight: 500; }
+.solution-stages { display: grid; min-width: 0; gap: 16px; }
+.solution-stage { min-width: 0; padding: 0; }
+.solution-stage h3 { margin: 0 0 8px; color: var(--head); font-size: 1.15rem; }
+.solution-stage p { margin: 0 0 16px; }
+.solution-stage p:last-child { margin-bottom: 0; }
+.solution-stage > p, .solution-stage > ul, .solution-stage > .detail-card { margin-left: 1rem; }
+.translation { color: var(--muted); }
+.detail-card h3 { margin: 0 0 8px; color: var(--head); font-size: 1rem; }
+.detail-card p { margin: 0; }
+.detail-card ul { margin: 8px 0 0; padding-left: 1.25rem; }
+.detail-card li + li { margin-top: 8px; }
+.callout { padding: 16px 20px; border-left: 3px solid var(--accent); background: var(--card); color: var(--muted); }
+.callout strong { color: var(--text); }
+.image-zoom { display: block; width: 100%; max-width: 900px; margin: 0 auto 24px; padding: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--card); cursor: zoom-in; }
+.image-zoom img { display: block; width: 100%; height: auto; }
+.image-lightbox { max-width: min(95vw, 1200px); max-height: 95vh; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.image-lightbox::backdrop { background: rgba(0, 0, 0, .75); }
+.image-lightbox img { display: block; max-width: calc(95vw - 32px); max-height: calc(95vh - 80px); object-fit: contain; }
+.image-lightbox-close { display: block; margin: 0 0 12px auto; }
+ul { margin-top: 0; }
+footer { margin-top: 72px; color: var(--muted); font-size: .875rem; }
+@media (min-width: 768px) {
+  .wrap { padding: 24px 48px 96px; }
+  h1 { font-size: 3.5rem; }
+  .diagram-card, .detail-card { padding: 32px; }
+}
+@media (max-width: 1023px) {
+  .page-links { top: auto; right: 16px; bottom: 16px; left: 16px; flex-direction: row; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 20px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); box-shadow: 0 4px 16px rgba(0, 0, 0, .12); transform: none; }
+  .page-links .language-link { width: auto; }
+}
+@media (max-width: 600px) {
+  h1 { font-size: 1.75rem; }
+  .diagram-card { padding: 16px; }
+  .diagram-wide { display: none; }
+  .diagram-mobile { display: block; }
+  .diagram-mobile .diagram-title { font-size: 16px; }
+  .diagram-mobile .diagram-copy { font-size: 12px; }
+  .diagram-mobile .diagram-label { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<nav class="page-links" aria-label="페이지 링크">
+  <a class="language-link" href="data-delivery.html" lang="en">English ver.</a>
+  <a href="index.html">← 메인으로 돌아가기</a>
+</nav>
+<div class="wrap">
+  <header>
+    <h1>Multi-Source Data Orchestration and Client Data Delivery Automation</h1>
+    <p class="subtitle">여러 플랫폼에서 대용량 데이터를 추출·변환하고 고객에게 전달하기 위한 파이프라인 설계.</p>
+    <ul class="project-tags" aria-label="사용 기술">
+      <li>Apache Airflow</li>
+      <li>dbt</li>
+      <li>Databricks</li>
+      <li>AWS S3</li>
+      <li>Azure Blob Storage</li>
+      <li>Google Cloud Storage</li>
+      <li>Snowflake</li>
+      <li>Kubernetes</li>
+    </ul>
+  </header>
+  <main>
+    <section class="copy" aria-labelledby="importance-title">
+      <h2 class="sec-title" id="importance-title">1. 왜 중요한가?</h2>
+      <p>고객사는 <b>미국 동부시간(EST) 기준 월요일 오전 9시까지</b> 데이터를 받아야 하고, 그 전에 분석가들이 자동화된 데이터 품질 검증까지 마칠 수 있어야 합니다.</p>
+      <p>한 번 실행할 때마다 약 500GB 규모의 데이터가 변환되며, 이후 이 데이터는 <b>50개가 넘는 AWS S3 버킷, 10개 이상의 Azure Blob Storage, 10개 이상의 GCS 계정, 그리고 50개 이상의 Snowflake 계정</b>으로 전달됩니다. </p>
+      <p>여기서는 단순히 데이터를 가공하는 문제를 넘어, 정교한 스케줄링이 필요한 운영 문제이기도 합니다. 
+        변환 속도가 느리거나, 워커 용량이 부족하거나, 서비스별 제한이 걸리거나, 목적지별 작업량이 고르지 않으면 정작 데이터 전달에 써야 할 시간이 줄어들 수 있습니다. 
+        게다가 변환이 끝났다고 해서 일이 끝나는 것도 아닙니다. 각 목적지로 데이터가 실제로 전송되고, SLA 시간 안에 검증까지 완료되어야 비로소 전체 작업이 끝난 것입니다.</p>
+      <p>그래서 이 플로우에서는 고객사별 진행 상태를 한눈에 파악할 수 있는 기능, 문제를 분리할 수 있는 구조, 안전하게 재시도할 수 있는 메커니즘, 
+        그리고 전송 속도 저하나 다운스트림 지연이 발생해도 흡수할 수 있는 충분한 일정 여유가 필요합니다. 동시에, 어느 고객사가 아직 데이터를 기다리고 있는지도 명확하게 확인할 수 있어야 합니다.</p>
+    </section>
+    <section aria-labelledby="plan-title">
+      <h2 class="sec-title" id="plan-title">2. 설계</h2>
+      <div class="solution-stages">
+        <article class="solution-stage">
+          <figure class="diagram-card">
+            <svg class="diagram diagram-wide" viewBox="0 0 1300 390" role="img" aria-labelledby="architecture-title architecture-description">
+              <title id="architecture-title">Multi-source orchestration and client delivery architecture</title>
+              <defs>
+                <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                  <path d="M0 0 L8 4 L0 8 Z" fill="#2dc0d3"/>
+                </marker>
+                <marker id="arrow-both" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto-start-reverse">
+                  <path d="M0 0 L8 4 L0 8 Z" fill="#2dc0d3"/>
+                </marker>
+              </defs>
+              <rect class="diagram-node" x="20" y="35" width="190" height="75" rx="10"/>
+              <text class="diagram-title" x="115" y="67" text-anchor="middle">Client metadata</text>
+              <text class="diagram-copy" x="115" y="93" text-anchor="middle">API config</text>
+
+              <rect class="diagram-node" x="20" y="265" width="190" height="75" rx="10"/>
+              <text class="diagram-title" x="115" y="297" text-anchor="middle">Internal AWS S3</text>
+              <text class="diagram-copy" x="115" y="323" text-anchor="middle">Raw source data</text>
+
+              <rect class="diagram-node" x="270" y="145" width="190" height="90" rx="10"/>
+              <text class="diagram-title" x="365" y="181" text-anchor="middle">Event Alert</text>
+              <text class="diagram-copy" x="365" y="208" text-anchor="middle">New data detected</text>
+
+              <rect class="diagram-node" x="520" y="145" width="190" height="90" rx="10"/>
+              <text class="diagram-title" x="615" y="181" text-anchor="middle">Airflow DAG</text>
+              <text class="diagram-copy" x="615" y="208" text-anchor="middle">KubernetesPodOperator</text>
+
+              <rect class="diagram-node" x="1000" y="35" width="210" height="90" rx="10"/>
+              <text class="diagram-title" x="1105" y="71" text-anchor="middle">dbt</text>
+              <text class="diagram-copy" x="1105" y="99" text-anchor="middle">Loads to Snowflake</text>
+
+              <rect class="diagram-node" x="1000" y="265" width="210" height="75" rx="10"/>
+              <text class="diagram-title" x="1105" y="297" text-anchor="middle">Databricks</text>
+              <text class="diagram-copy" x="1105" y="323" text-anchor="middle">Partitions raw data</text>
+
+              <rect class="diagram-node" x="500" y="265" width="180" height="75" rx="10"/>
+              <text class="diagram-title" x="590" y="293" text-anchor="middle">S3 Delivery</text>
+              <text class="diagram-copy" x="590" y="319" text-anchor="middle">Run S3 tasks</text>
+
+              <rect class="diagram-node" x="700" y="265" width="180" height="75" rx="10"/>
+              <text class="diagram-title" x="790" y="293" text-anchor="middle">Client Snowflake</text>
+              <text class="diagram-copy" x="790" y="319" text-anchor="middle">Client delivery · second</text>
+ 
+              <path class="diagram-arrow" d="M210 72 L270 163" marker-end="url(#arrow)"/>
+              <path class="diagram-arrow" d="M210 303 L270 217" marker-end="url(#arrow)"/>
+              <path class="diagram-arrow" d="M460 190 H512" marker-end="url(#arrow)"/>
+              <path class="diagram-arrow" d="M710 170 L1000 90" marker-start="url(#arrow-both)" marker-end="url(#arrow-both)"/>
+              <path class="diagram-arrow" d="M710 210 L1000 295" marker-start="url(#arrow-both)" marker-end="url(#arrow-both)"/>
+              <path class="diagram-arrow" d="M615 235 V248 H590 V257" marker-end="url(#arrow)"/>
+              <path class="diagram-arrow" d="M615 248 H790 V257" marker-end="url(#arrow)"/>
+            </svg>
+            <svg class="diagram diagram-mobile" viewBox="0 0 420 495" role="img" aria-labelledby="architecture-mobile-title architecture-mobile-description">
+              <title id="architecture-mobile-title">Multi-source orchestration and client delivery architecture</title>
+              <desc id="architecture-mobile-description">An event alert triggers the Airflow DAG when new data is detected. Airflow exchanges status and task requests with dbt and Databricks, then triggers both delivery TaskGroups, with S3 delivery first and client Snowflake delivery second.</desc>
+              <defs>
+                <marker id="arrow-mobile" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+                  <path d="M0 0 L8 4 L0 8 Z" fill="#2dc0d3"/>
+                </marker>
+                <marker id="arrow-mobile-both" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto-start-reverse">
+                  <path d="M0 0 L8 4 L0 8 Z" fill="#2dc0d3"/>
+                </marker>
+              </defs>
+              <rect class="diagram-node" x="20" y="15" width="180" height="60" rx="10"/>
+              <text class="diagram-title" x="110" y="40" text-anchor="middle">Client metadata API</text>
+              <text class="diagram-copy" x="110" y="62" text-anchor="middle">API config</text>
+
+              <rect class="diagram-node" x="220" y="15" width="180" height="60" rx="10"/>
+              <text class="diagram-title" x="310" y="40" text-anchor="middle">Internal AWS S3</text>
+              <text class="diagram-copy" x="310" y="62" text-anchor="middle">Raw source data</text>
+
+              <rect class="diagram-node" x="20" y="105" width="380" height="65" rx="10"/>
+              <text class="diagram-title" x="210" y="132" text-anchor="middle">Event Alert</text>
+              <text class="diagram-copy" x="210" y="155" text-anchor="middle">Triggers DAG when new data is detected</text>
+
+              <rect class="diagram-node" x="20" y="200" width="380" height="65" rx="10"/>
+              <text class="diagram-title" x="210" y="227" text-anchor="middle">Airflow DAG</text>
+              <text class="diagram-copy" x="210" y="250" text-anchor="middle">API: dbt + Databricks · polls runs</text>
+
+              <rect class="diagram-node" x="20" y="295" width="180" height="65" rx="10"/>
+              <text class="diagram-title" x="110" y="322" text-anchor="middle">S3 delivery</text>
+              <text class="diagram-copy" x="110" y="345" text-anchor="middle">TaskGroup · first</text>
+
+              <rect class="diagram-node" x="220" y="295" width="180" height="65" rx="10"/>
+              <text class="diagram-title" x="310" y="322" text-anchor="middle">Client Snowflake</text>
+              <text class="diagram-copy" x="310" y="345" text-anchor="middle">TaskGroup · second</text>
+
+              <rect class="diagram-node" x="20" y="390" width="180" height="65" rx="10"/>
+              <text class="diagram-title" x="110" y="417" text-anchor="middle">dbt</text>
+              <text class="diagram-copy" x="110" y="440" text-anchor="middle">Loads to Snowflake</text>
+
+              <rect class="diagram-node" x="220" y="390" width="180" height="65" rx="10"/>
+              <text class="diagram-title" x="310" y="417" text-anchor="middle">Databricks</text>
+              <text class="diagram-copy" x="310" y="440" text-anchor="middle">Partitions raw data for S3</text>
+
+              <path class="diagram-arrow" d="M110 75 L190 105" marker-end="url(#arrow-mobile)"/>
+              <path class="diagram-arrow" d="M310 75 L230 105" marker-end="url(#arrow-mobile)"/>
+              <path class="diagram-arrow" d="M210 170 V192" marker-end="url(#arrow-mobile)"/>
+              <path class="diagram-arrow" d="M110 265 V287" marker-end="url(#arrow-mobile)"/>
+              <path class="diagram-arrow" d="M310 265 V287" marker-end="url(#arrow-mobile)"/>
+              <path class="diagram-arrow" d="M20 232 H8 V422 H20" marker-start="url(#arrow-mobile-both)" marker-end="url(#arrow-mobile-both)"/>
+              <path class="diagram-arrow" d="M400 232 H412 V422 H400" marker-start="url(#arrow-mobile-both)" marker-end="url(#arrow-mobile-both)"/>
+            </svg>
+            <figcaption class="diagram-caption">새 데이터가 감지되면 이벤트 알림이 Airflow DAG를 실행합니다. 이후 Airflow는 dbt와 Databricks로 데이터를 변환시키고, 그 다음 S3 고객들에게 전달을 우선으로 하고 Snowflake 고객들에게 전달합니다.</figcaption>
+          </figure>
+        </article>
+      </div>
+    </section>
+    <section aria-labelledby="solution-title">
+      <h2 class="sec-title" id="solution-title">3. 해결 방안</h2>
+      <div class="solution-stages">
+        <article class="solution-stage">
+        <p><b>트리거:</b> 파이프라인을 시작하려면 트리거가 필요합니다. 이벤트 기반 트리거를 사용하면 새 데이터 폴더에 checksum 파일이나 SUCCESS 파일이 생성되었는지 감지할 수 있습니다. 새 데이터가 확인되면 API를 통해 Airflow DAG를 실행합니다.</p>
+        <p><b>ETL:</b> API를 통해 dbt와 Databricks 작업을 실행합니다. dbt는 데이터를 변환해 분석용 데이터를 Snowflake에 적재하고, Databricks는 Snowflake에서 가져온 데이터를 읽어 파티셔닝한 뒤, 전달용 데이터를 AWS S3에 다시 저장합니다. 이후 Airflow 태스크가 작업 완료 여부를 폴링하고, 완료가 확인되면 다음 태스크를 실행합니다.</p>
+        <p><b>Airflow 오케스트레이션:</b> 수집된 메타데이터에는 고객 데이터 정보가 포함되며, Airflow는 이걸 사용해 태스크를 알아서 생성합니다. 전달 유형별로 TaskGroup을 구성하고, 실행 시간이 가장 오래 걸리는 작업이 먼저 시작되도록 [Azure, GCS, S3] → Snowflake 순서로 운영합니다.</p>
+        <p><b>동시성:</b> Airflow 리소스 사용을 줄이고 태스크를 병렬로 실행하기 위해 PythonOperator 대신 KubernetesPodOperator를 사용합니다. 또한 태스크 실행 시간, 워커 용량, 네트워크 대역폭, S3 처리량을 고려해 한도를 설정합니다.</p>
+        </article>
+      </div>
+    </section>
+    <section class="copy" aria-labelledby="result-title">
+      <h2 class="sec-title" id="result-title">4. 결과</h2>
+      <button class="image-zoom" type="button" aria-label="Airflow 파이프라인 이미지 확대">
+        <img src="media/airflow.jpg" alt="Airflow 파이프라인 그래프">
+      </button>
+      <p class="diagram-caption" style="text-align: center;">Airflow 그래프 예시입니다. 파란색 태스크는 TaskGroup입니다.</p>
+      <dialog class="image-lightbox" aria-label="확대한 Airflow 그래프">
+        <button class="image-lightbox-close" type="button">닫기</button>
+        <img src="media/airflow.jpg" alt="Airflow 파이프라인 그래프">
+      </dialog>
+      <script>
+        const imageLightbox = document.querySelector('.image-lightbox');
+        document.querySelector('.image-zoom').addEventListener('click', () => imageLightbox.showModal());
+        imageLightbox.querySelector('.image-lightbox-close').addEventListener('click', () => imageLightbox.close());
+        imageLightbox.addEventListener('click', event => {
+          if (event.target === imageLightbox) imageLightbox.close();
+        });
+      </script>
+      <p>이 설계는 고객당 약 500GB의 데이터를 월요일 오전 9시(미국 동부 표준시)까지 S3, Azure, GCS 및 Snowflake 목적지로 전달하는 작업을 그려냅니다.</p>
+      <p>SLA 준수에는 현실적인 실행 시간 추정, 용량 계획, 모니터링, 안전한 재시도, 그리고 전송 지연에 대비한 조율이 필요합니다.
+        실행 순서만으로 전달 시간을 보장할 수는 없으며, 각 목적지에서 전달 완료 여부를 확인해야 합니다.</p>
+    </section>
+    <section class="copy" aria-labelledby="tradeoffs-title">
+      <h2 class="sec-title" id="tradeoffs-title">5. 고려 사항</h2>
+      <ul>
+        <li><strong>동시성과 리소스 경합.</strong> 고객별 태스크를 더 많이 병렬로 실행하면 전체 처리 시간은 줄어들 수 있지만, 그만큼 작업자, 네트워크, API, S3, Snowflake에 걸리는 부하도 함께 커집니다. 따라서 한도 상향은 실제 측정된 처리 용량과 서비스 할당량이 충분히 뒷받침될 때만 신중하게 적용해야 합니다.</li>
+        <li><strong>TaskGroup 구성.</strong> TaskGroup은 관련 태스크를 논리적으로 묶어 운영과 관리 편의성을 높여주지만, 태스크 수를 제한하거나 실행 순서를 보장하는 기능까지 제공하지는 않습니다.</li>
+        <li><strong>재시도와 중복 처리.</strong> 실패한 전달을 재시도하면 복구는 쉬워지지만, 이미 고객에게 데이터가 정상적으로 도착한 뒤에 타임아웃이 발생하는 경우도 있을 수 있습니다. 이런 상황에 대비하려면 idempotent 저장 방식, 실행 식별자, 또는 고객 측 검증 절차를 통해 중복 전송이나 불일치 결과를 방지하는 것이 좋습니다.</li>
+      </ul>
+    </section>
+    <section class="copy" aria-labelledby="optimization-title">
+      <h2 class="sec-title" id="optimization-title">최적화 방안: 파티션 별 Dynamic Task Mapping</h2>
+<p>대용량 데이터 전달에서는 Airflow Dynamic Task Mapping을 최적화 방안으로 검토해볼 수 있습니다. 예를 들어 추가 태스크가 S3 파티션 수를 확인한 뒤, 전체 파티션을 하나의 태스크에서 처리하는 대신 여러 파티션 묶음을 각 태스크에 할당해 작업을 분산할 수 있습니다.</p>
+<p>태스크 매핑을 활용하면 대규모 실행을 여러 워커에 나눠 처리할 수 있고, 전체 실행을 다시 시도하는 대신 실패한 배치만 분리해 재시도할 수 있습니다. 다만 매핑 범위는 적절히 제한해야 합니다. 
+  파티션마다 태스크를 생성하면 스케줄러나 메타데이터 데이터베이스에 부담을 줄 수 있고, 지나친 병렬 실행은 네트워크 대역폭, 요청 한도, 워커 리소스를 빠르게 소모할 수 있습니다. 
+  따라서 동시에 실행할 매핑 태스크 수는 Airflow의 동시성 제어와 풀(pool)을 활용해 신중하게 조정하는 것이 좋습니다.</p>
+    </section>
+  </main>
+</div>
+</body>
+</html>
